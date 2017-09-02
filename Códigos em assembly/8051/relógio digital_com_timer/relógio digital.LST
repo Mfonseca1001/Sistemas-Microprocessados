@@ -1,0 +1,1033 @@
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE     1
+
+
+MACRO ASSEMBLER A51 V7.10
+OBJECT MODULE PLACED IN relÛgio digital.OBJ
+ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\A51.EXE relÛgio digital.asm SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     ;RelÛgio digital com timer em assembly............. Jhonathas e Marcele
+                       2     ;Dia 20/09/2016
+                       3     
+  00A4                 4     DSP0            EQU       P2.4
+  00A0                 5     DSP1            EQU       P2.0
+  00A1                 6     DSP2            EQU       P2.1
+  00A2                 7     DSP3            EQU       P2.2
+  00A3                 8     DSP4            EQU       P2.3
+  00A5                 9     DSP5            EQU       P2.5
+  00A6                10     DSP6            EQU       P2.6
+  00A7                11     DSP7            EQU       P2.7
+  00B0                12     CH1             EQU       P3.0
+  00B1                13     CH2             EQU       P3.1
+  00B2                14     CH3             EQU     P3.2
+  00B3                15     CH4             EQU     P3.3
+  00B4                16     CH5             EQU     P3.4            
+                      17     
+----                  18             bseg
+0000                  19     flg_1:            dbit  1
+0001                  20     f_hora:           dbit  1
+0002                  21     f_data:           dbit  1
+0003                  22     flg_s:            dbit  1
+0004                  23     flgcont:            dbit      1
+                      24     
+                      25     
+----                  26             dseg      at 8   
+0008                  27     COD0:      ds        1
+0009                  28     COD1:      ds        1    
+000A                  29     COD2:      ds        1                
+000B                  30     COD3:      ds        1  
+000C                  31     COD4:      ds        1 
+000D                  32     COD5:      ds        1  
+000E                  33     COD6:      ds        1  
+000F                  34     COD7:      ds        1
+                      35      
+0010                  36     SEG:       ds        1
+0011                  37     MIN:       ds        1
+0012                  38     HOR:       ds        1
+0013                  39     DIA:       ds        1
+0014                  40     MES:       ds        1
+0015                  41     ANO:       ds        1 
+0016                  42     cont:      ds        1
+0017                  43     cont2:     ds        1
+                      44     
+----                  45               iseg      at 80h     ;segmento de pilha
+0080                  46     pilha:    ds        20
+                      47     
+----                  48               cseg      at 0
+0000 0195             49     inicio:   jmp       inicio2
+                      50     
+----                  51               cseg      at 000bh         ; interrupÁ„o timer 0
+000B 758C06           52               MOV       TH0,#(256-250)   ; vou gerar 250Hz
+000E 619B             53               jmp       saidoaperto ; rotina de contagem
+                      54     
+----                  55               cseg      at 001bh
+001B 758D64           56               mov       TH1,#(256-156)   ; vou gerar 400HZ
+                      57                      
+001E                  58     varredura:
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE     2
+
+001E C0D0             59               push      psw
+0020 C0E0             60               push      acc
+                      61                ; varredura dos display
+0022 30A415           62                JNB DSP0, DISPLAYZ0  ;IR PARA O DISPLAY0
+0025 30A01B           63                JNB DSP1, DISPLAYZ1  ;IR PARA O DISPLAY1
+0028 30A121           64                JNB DSP2, DISPLAYZ2  ;IR PARA O DISPLAY2
+002B 30A227           65                JNB DSP3, DISPLAYZ3  ;IR PARA O DISPLAY3
+002E 30A32D           66                JNB DSP4, DISPLAYZ4  ;IR PARA O DISPLAY4
+0031 30A533           67                JNB DSP5, DISPLAYZ5  ;IR PARA O DISPLAY5
+0034 30A639           68                JNB DSP6, DISPLAYZ6  ;IR PARA O DISPLAY6
+0037 30A73F           69                JNB DSP7, DISPLAYZ7  ;IR PARA O DISPLAY7
+                      70               
+003A                  71     DISPLAYZ0:
+003A D2A4             72                             SETB DSP0               ;DESLIGA DISPLAY0
+003C 850980           73                             MOV P0,COD1             ;JOGA EM P0 O COD1
+003F C2A0             74                             CLR DSP1                ;LIGA DISPLAY1
+0041 804D             75                             JMP ENCONTRO1   ;PULA PARA O ENCONTRO1
+                      76     
+0043                  77     DISPLAYZ1:
+0043 D2A0             78                             SETB DSP1               ;DESLIGA DISPLAY1
+0045 850A80           79                             MOV P0,COD2             ;JOGA EM P0 O COD2 
+0048 C2A1             80                             CLR DSP2                ;LIGA DISPLAY2
+004A 8044             81                             JMP ENCONTRO1   ;PULA PARA O ENCONTRO1
+                      82     
+004C                  83     DISPLAYZ2:
+                      84               
+004C D2A1             85                             SETB DSP2               ;DESLIGA DISPLAY2
+004E 850B80           86                             MOV P0,COD3             ;JOGA EM P0 O COD3
+0051 C2A2             87                             CLR DSP3                ;LIGA DISPLAY3
+0053 803B             88                             JMP ENCONTRO1   ;PULA PARA O ENCONTRO1
+                      89     
+0055                  90     DISPLAYZ3:
+0055 D2A2             91                             SETB DSP3               ;DESLIGA DISPLAY3
+0057 850C80           92                             MOV P0,COD4             ;JOGA EM P0 O COD4
+005A C2A3             93                             CLR DSP4                ;LIGA DISPLAY4
+005C 8032             94                             JMP ENCONTRO1   ;PULA PARA O ENCONTRO1
+                      95     
+005E                  96     DISPLAYZ4:
+                      97              
+005E D2A3             98                             SETB DSP4               ;DESLIGA DISPLAY4
+0060 850D80           99                             MOV P0,COD5             ;JOGA EM P0 O COD5
+0063 C2A5            100                             CLR DSP5                ;LIGA DISPLAY5
+0065 8029            101                             JMP ENCONTRO1   ;PULA PARA O ENCONTRO1
+                     102     
+0067                 103     DISPLAYZ5:
+0067 D2A5            104                             SETB DSP5               ;DESLIGA DISPLAY5
+0069 850E80          105                             MOV P0,COD6             ;JOGA EM P0 O COD6
+006C C2A6            106                             CLR DSP6                ;LIGA DISPLAY6
+006E 8020            107                             JMP ENCONTRO1   ;PULA PARA O ENCONTRO1
+                     108                
+0070                 109     DISPLAYZ6:
+                     110               
+0070 D2A6            111                             SETB DSP6               ;DESLIGA DISPLAY6
+0072 850F80          112                             MOV P0,COD7             ;JOGA EM P0 O COD7
+0075 C2A7            113                             CLR DSP7                ;LIGA DISPLAY7
+0077 8017            114                             JMP ENCONTRO1   ;PULA PARA O ENCONTRO1
+0079                 115     DISPLAYZ7:
+0079 D2A7            116                             SETB DSP7               ;DESLIGA DISPLAY7
+007B 850880          117                             MOV P0,COD0             ;JOGA EM P0 O COD0
+007E C2A4            118                                     CLR DSP0                ;LIGA DISPLAY0
+0080 800E            119                                   jmp      encontro1
+0082 0517            120      inc       cont2
+0084 E517            121               mov       a,cont2
+0086 B46406          122               cjne      a,#100,return
+0089 751700          123               mov       cont2,#0
+008C D204            124               setb      flgcont
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE     3
+
+008E 32              125               reti
+008F                 126     return:
+008F 32              127               reti
+0090                 128     Encontro1:
+                     129     
+0090 D0E0            130               pop       acc
+0092 D0D0            131               pop       psw
+0094 32              132               reti
+                     133                  
+0095                 134     inicio2: 
+0095 200402          135               jb                  flgcont,continua
+0098 80FB            136               jmp                 inicio2           
+009A                 137     continua: 
+009A 75817F          138               mov       sp,#pilha-1
+009D 758900          139               mov       TMOD,#00h 
+00A0 758C06          140               mov       TH0,#(256-250)       ; vou gerar 250Hz
+00A3 758D64          141               mov   TH1,#(256-156)
+00A6 D28C            142               setb      TR0
+00A8 D28E            143               setb      TR1
+00AA 75A88A          144               mov       ie,#8Ah              ; habilita a interrupÁ„o timer 0 e 1
+00AD                 145     conversao: 
+00AD D2A4            146             SETB      DSP0
+00AF 751000          147               mov       seg,#0
+00B2 751100          148               mov       min,#0
+00B5 751200          149               mov       hor,#0
+00B8 751301          150               mov       dia,#01
+00BB 751401          151               mov       mes,#01
+00BE 751500          152               mov       ano,#00
+                     153              
+00C1                 154     volta:
+00C1 30B002          155                       jnb           ch1,clrflg_1
+00C4 21C9            156                       jmp           tstch2
+                     157     
+00C6                 158     clrflg_1:
+00C6 30B104          159                       jnb           ch2,flg_semana_1        ;se a ch1 e ch2 =0, mostra o dia da
+                              semana
+00C9 C200            160                       clr           flg_1
+00CB 21D2            161                       jmp           tstflg_1
+                     162     
+00CD                 163     flg_semana_1:
+00CD D203            164                       setb          flg_s
+00CF 200300          165                       jb            flg_s,mostrad_sem
+                     166     
+00D2                 167     mostrad_sem:; DIA DA SEMANA IMPORTANTE!!!
+                     168     
+00D2 E515            169                       mov           a,ano   ; movo o ano para acumulador    
+00D4 75F064          170                       mov           b,#100  ;movo 100 para 'b'
+00D7 25F0            171                       add           a,b             ;somo a+b
+00D9 F8              172                       mov           r0,a    ; valor de A= ano+100
+00DA 75F004          173                       mov           b,#4    ;
+00DD 84              174                       div           ab
+00DE F9              175                         mov         r1,a    ; valor de B= ano n„o bissexto  
+00DF E515            176                         mov         a,ano
+00E1 75F004          177                           mov                 b,#4
+00E4 84              178                         div         ab 
+00E5 E5F0            179                           mov       a,b 
+00E7 6002            180                         jz          tstmes  ;ano bissexto? se sim, vai para teste do mÍs, se n„
+                             o, segue normal
+00E9 800C            181                         jmp         passo3
+                     182     
+00EB                 183     tstmes:   
+00EB E514            184                           mov               a,mes
+00ED B40203          185                       cjne          a,#2,menor
+00F0                 186     decr1:
+00F0 19              187                       dec           r1
+00F1 8004            188                       jmp           passo3
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE     4
+
+                     189     
+00F3                 190     menor:    
+00F3 40FB            191                           jc                decr1
+00F5 8000            192                       jmp           passo3
+                     193     
+00F7                 194     passo3:   
+00F7 E514            195                           mov               a,mes
+00F9 9002F1          196                       mov           dptr,#tabela_1
+00FC 93              197                       movc          a,@a + dptr
+00FD FA              198                       mov           r2,a    ;valor de C
+00FE E513            199                       mov           a,dia
+0100 14              200                       dec           a       ;valor de D= dia -1
+0101 2A              201                       add           a,r2    ; D+C
+0102 29              202                       add           a,r1    ; B+C+D
+0103 28              203                       add           a,r0    ;A+B+C+D
+0104 75F007          204                       mov           b,#7
+0107 84              205                       div           ab
+0108 E5F0            206                       mov           a,b
+                     207     
+010A                 208     segunda:
+010A B40018          209             cjne    a,#0,terca
+010D 750FFF          210             mov             cod7,#0FFh      ;segunda-feira
+0110 750E92          211             mov             cod6,#92h
+0113 750D86          212             mov             cod5,#86h
+0116 750CC2          213             mov             cod4,#0C2h
+0119 750BC1          214             mov             cod3,#0c1h
+011C 750AAB          215             mov             cod2,#0ABh
+011F 7509A1          216             mov             cod1,#0A1h
+0122 750888          217             mov             cod0,#88h
+                     218     
+0125                 219     terca:  
+0125 B40118          220             cjne    a,#1,quarta
+0128 750FFF          221             mov             cod7,#0FFh      ;terÁa-feira
+012B 750EFF          222             mov             cod6,#0FFh
+012E 750DFF          223             mov             cod5,#0FFh
+0131 750C87          224             mov             cod4,#87h
+0134 750B86          225             mov             cod3,#86h
+0137 750AAF          226             mov             cod2,#0AFh
+013A 7509C6          227             mov             cod1,#0C6h
+013D 750888          228             mov             cod0,#88h
+                     229     
+0140                 230     quarta:
+0140 B40218          231             cjne    a,#2,quinta
+0143 750FFF          232             mov             cod7,#0FFh      ;quarta-feira
+0146 750EFF          233             mov             cod6,#0FFh
+0149 750D98          234             mov             cod5,#98h
+014C 750CC1          235             mov             cod4,#0C1h
+014F 750B88          236             mov             cod3,#88h
+0152 750AAF          237             mov             cod2,#0AFh
+0155 750987          238             mov             cod1,#087h
+0158 750888          239             mov             cod0,#88h
+                     240             
+015B                 241      quinta:
+015B B40318          242             cjne    a,#3,sexta
+015E 750FFF          243             mov             cod7,#0FFh      ;quinta-feira
+0161 750EFF          244             mov             cod6,#0FFh
+0164 750D98          245             mov             cod5,#98h
+0167 750CC1          246             mov             cod4,#0C1h
+016A 750BCF          247             mov             cod3,#0CFh
+016D 750AAB          248             mov             cod2,#0ABh
+0170 750987          249             mov             cod1,#087h
+0173 750888          250             mov             cod0,#88h
+                     251     
+0176                 252     sexta:
+0176 B40418          253             cjne    a,#4,sabado
+0179 750FFF          254             mov             cod7,#0FFh      ;sexta-feira
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE     5
+
+017C 750EFF          255             mov             cod6,#0FFh
+017F 750DFF          256             mov             cod5,#0FFh
+0182 750C92          257             mov             cod4,#92h
+0185 750B86          258             mov             cod3,#86h
+0188 750A89          259             mov             cod2,#89h
+018B 750987          260             mov             cod1,#087h
+018E 750888          261             mov             cod0,#88h
+                     262     
+0191                 263     sabado:
+0191 B40518          264             cjne    a,#5,domingo
+0194 750FFF          265             mov             cod7,#0FFh      ;s·bado
+0197 750EFF          266             mov             cod6,#0FFh
+019A 750D92          267             mov             cod5,#92h
+019D 750C88          268             mov             cod4,#88h
+01A0 750B83          269             mov             cod3,#83h
+01A3 750A88          270             mov             cod2,#88h
+01A6 7509A1          271             mov             cod1,#0A1h
+01A9 7508A3          272             mov             cod0,#0A3h
+                     273             
+01AC                 274     domingo:
+01AC B40618          275             cjne    a,#6,segundax
+01AF 750FFF          276             mov             cod7,#0FFh      ;domingo
+01B2 750EA1          277             mov             cod6,#0A1h
+01B5 750DA3          278             mov             cod5,#0A3h
+01B8 750CC8          279             mov             cod4,#0C8h
+01BB 750BCF          280             mov             cod3,#0CFh
+01BE 750AAB          281             mov             cod2,#0ABh
+01C1 7509C2          282             mov             cod1,#0C2h
+01C4 7508A3          283             mov             cod0,#0A3h
+                     284     
+01C7                 285     segundax:       
+01C7 01C1            286             jmp volta
+                     287     
+01C9                 288     tstch2:
+01C9 30B102          289                     jnb             ch2,setflg_1
+01CC 8004            290                     jmp             tstflg_1
+                     291     
+01CE                 292     setflg_1:
+01CE D200            293                     setb              flg_1
+01D0 8000            294                     jmp             tstflg_1
+                     295     
+01D2                 296     tstflg_1:
+01D2 200002          297                     jb              flg_1,tstf_data
+01D5 8005            298                     jmp             tstf_hora
+                     299     
+01D7                 300     tstf_data:
+01D7 200209          301                     jb              f_data,c_manual_0
+01DA 8007            302                     jmp             c_manual_0      
+                     303     
+01DC                 304     tstf_hora:
+01DC 20014C          305                     jb              f_hora,c_manual_1
+01DF 804A            306                     jmp             c_manual_1
+01E1 4171            307                     jmp             co_hora
+                     308     
+01E3                 309     c_manual_0:; AJUSTE DO DIA, MES E ANO, IMPORTANTE!!!
+01E3 200402          310                     jb                  flgcont,testacomdelay
+01E6 80FB            311                         jmp                 c_manual_0
+                     312     
+01E8                 313     testacomdelay:
+01E8 30B202          314                         jnb         ch3,setf_data
+01EB 8006            315                     jmp             tstch4_1
+01ED                 316     setf_data:
+01ED D202            317                     setb              f_data
+01EF 8000            318                     jmp             inc_dia
+                     319                     
+01F1                 320     inc_dia:;############################################ AJUSTE DO DIA #######################
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE     6
+
+                             ############################################
+01F1 41FE            321                     jmp             incdia
+                     322     
+01F3                 323     tstch4_1:
+01F3 30B302          324                     jnb             ch4,setf_data1
+01F6 8014            325                     jmp             tstch5_1
+                     326                     
+01F8                 327     setf_data1:
+01F8 D202            328                     setb              f_data
+01FA 8000            329                     jmp             inc_mes
+                     330                     
+01FC                 331     inc_mes:;################################### AJUSTE DO MÍS ################################
+                             ####################################
+01FC 0514            332                     inc             mes
+01FE E514            333                     mov             a,mes
+0200 B40D02          334                     cjne              a,#13,dif3
+0203 8002            335                     jmp             zerames
+0205                 336     dif3:
+0205 4020            337                     jc              setdata
+0207                 338     zerames:
+0207 751401          339                     mov             mes,#1
+020A 801B            340                     jmp                 setdata    
+020C                 341     tstch5_1:
+020C 30B402          342                     jnb             ch5,setf_data2
+020F 8004            343                     jmp             clrf_data
+                     344     
+0211                 345     setf_data2:
+0211 D202            346                     setb              f_data
+0213 8004            347                     jmp             inc_ano
+0215                 348     clrf_data:
+0215 C202            349                     clr             f_data
+0217 41AC            350                     jmp             co_data         
+0219                 351     inc_ano:;########################################### AJUSTE DO ANO ########################
+                             ###########################################
+0219 0515            352                     inc                 ano
+021B E515            353                         mov                 a,ano
+021D B46402          354                         cjne                a,#100,dif2
+0220 8002            355                     jmp             zeraano
+                     356                         
+0222                 357     dif2:   
+0222 4003            358                         jc                  setdata
+0224                 359     zeraano:
+0224 751500          360                         mov                 ano,#0
+0227                 361     setdata:
+0227 C202            362                     clr               f_data
+0229 41AC            363                     jmp               co_data
+                     364     
+022B                 365     c_manual_1:; AJUSTE DA HORA, MINUTO E SEGUNDO, IMPORTANTE!!!!
+                     366             
+022B 30B202          367                     jnb             ch3,hora_1
+022E 8014            368                     jmp             tstch4
+                     369     
+0230                 370     hora_1:
+0230 D201            371                     setb              f_hora
+0232 8000            372                     jmp             inc_hora
+                     373                     
+0234                 374     inc_hora:          ;############################################ AJUSTE DA HORA ###########
+                             ###############################
+                     375                     
+0234 0512            376                     inc                 hor
+0236 E512            377                         mov                 a,hor
+0238 B41802          378                         cjne                a,#24,dif60_23
+023B 8002            379                         jmp                 zerahora
+023D                 380     dif60_23:
+023D 401E            381                     jc                  setfhora
+023F                 382     zerahora:
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE     7
+
+023F 751200          383                     mov                 hor,#0
+0242 8019            384                     jmp             setfhora
+0244                 385     tstch4:
+0244 30B302          386                     jnb             ch4,hora1
+0247 8018            387                     jmp             tstch5
+                     388                     
+0249                 389     hora1:
+0249 D201            390                     setb              f_hora
+024B 8000            391                     jmp             inc_min
+                     392                     
+024D                 393     inc_min:;######################## AJUSTE DOS MINUTOS ######################################
+                             ############
+024D 0511            394                     inc                 min
+024F E511            395                         mov                 a,min
+0251 B43C02          396                         cjne                a,#60,dif60_123
+0254 8002            397                         jmp                 zeramin1
+0256                 398     dif60_123:
+0256 4005            399                     jc              setfhora
+                     400     
+0258                 401     zeramin1:  
+0258 751100          402                     mov                 min,#0
+025B 8000            403                     jmp             setfhora
+025D                 404     setfhora:               
+025D C201            405                     clr             f_hora
+025F 8010            406                     jmp             co_hora
+0261                 407     tstch5:
+0261 30B402          408                     jnb             ch5,hora_11
+0264 8004            409                     jmp             hora0
+0266                 410     hora_11:
+0266 D201            411                     setb              f_hora
+0268 8004            412                     jmp             clr_seg
+026A                 413     hora0:
+026A C201            414                     clr             f_hora
+026C 8003            415                     jmp             co_hora         
+026E                 416     clr_seg:                
+026E 751000          417                     mov                 seg,#0
+                     418                             ;########################### ZERA O SEGUNDO #######################
+                             ###############################
+                     419     
+0271                 420     co_hora:
+0271 E510            421                     mov             a,seg
+0273 75F00A          422                     mov             b,#10
+0276 84              423                     div               ab
+0277 9002E7          424                     mov             dptr,#tabela
+027A 93              425                     movc              a,@a+dptr
+027B F509            426                     mov             cod1,a
+027D E5F0            427                     mov             a,b
+027F 93              428                     movc              a,@a+dptr
+0280 F508            429                     mov             cod0,a
+                     430     
+0282 E511            431                     mov             a,min
+0284 75F00A          432                     mov             b,#10
+0287 84              433                     div               ab
+0288 9002E7          434                     mov             dptr,#tabela
+028B 93              435                     movc              a,@a+dptr
+028C F50B            436                     mov             cod3,a
+028E E5F0            437                     mov             a,b
+0290 93              438                     movc              a,@a+dptr
+0291 F50A            439                     mov             cod2,a
+                     440     
+0293 E512            441                     mov             a,hor
+0295 75F00A          442                     mov             b,#10
+0298 84              443                     div               ab
+0299 9002E7          444                     mov             dptr,#tabela
+029C 93              445                     movc              a,@a+dptr
+029D F50D            446                     mov             cod5,a
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE     8
+
+029F E5F0            447                     mov             a,b
+02A1 93              448                     movc              a,@a+dptr
+02A2 F50C            449                     mov             cod4,a
+                     450     
+02A4 85FF0E          451                     mov             cod6,0FFh
+02A7 85FF0F          452                     mov             cod7,0FFh
+02AA 01C1            453                     jmp             volta
+                     454     
+02AC                 455     co_data:
+02AC E513            456                     mov             a,dia
+02AE 75F00A          457                     mov             b,#10
+02B1 84              458                     div             ab
+02B2 9002E7          459                     mov             dptr,#tabela
+02B5 93              460                     movc            a,@a+dptr
+02B6 F50F            461                     mov             cod7,a
+02B8 E5F0            462                     mov             a,b
+02BA 93              463                     movc            a,@a+dptr
+02BB F50E            464                     mov             cod6,a
+                     465     
+02BD E514            466                     mov             a,mes
+02BF 75F00A          467                     mov             b,#10
+02C2 84              468                     div             ab
+02C3 9002E7          469                     mov             dptr,#tabela
+02C6 93              470                     movc            a,@a+dptr
+02C7 F50D            471                     mov             cod5,a
+02C9 E5F0            472                     mov             a,b
+02CB 93              473                     movc              a,@a+dptr
+02CC F50C            474                     mov             cod4,a
+                     475     
+02CE 750AC0          476                     mov             cod2,#0C0h
+02D1 750BA4          477                     mov             cod3,#0A4h       
+                     478     
+02D4 E515            479                     mov             a,ano
+02D6 75F00A          480                     mov             b,#10
+02D9 84              481                     div               ab
+02DA 9002E7          482                     mov             dptr,#tabela
+02DD 93              483                     movc              a,@a+dptr
+02DE F509            484                     mov             cod1,a
+02E0 E5F0            485                     mov             a,b
+02E2 93              486                     movc              a,@a+dptr
+02E3 F508            487                     mov             cod0,a
+02E5 01C1            488                     jmp             volta
+                     489     
+02E7                 490     tabela:         ;tabela para a contagem de 0-9 no display
+02E7 C0              491                     db      0c0h
+02E8 F9              492                     db      0f9h
+02E9 A4              493                     db      0a4h
+02EA B0              494                     db      0b0h
+02EB 99              495                     db      99h
+02EC 92              496                     db      92h
+02ED 82              497                     db      82h
+02EE D8              498                     db      0d8h
+02EF 80              499                     db      80h
+02F0 90              500                     db      90h
+                     501     
+02F1                 502     tabela_1:       ;tabela dos meses p/ dia da semana      
+02F1 00              503                     db      0h      ;nenhum mÍs
+02F2 00              504                     db      0h      ;janeiro
+02F3 03              505                     db      3h
+02F4 03              506                     db      3h
+02F5 06              507                     db      6h
+02F6 01              508                     db      1h
+02F7 04              509                     db      4h
+02F8 06              510                     db      6h
+02F9 02              511                     db      2h
+02FA 05              512                     db      5h
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE     9
+
+02FB 00              513                     db      0h
+02FC 03              514                     db      3h
+02FD 05              515                     db      5h ;dezembro
+                     516     
+02FE                 517     incdia:
+02FE 0513            518                         inc       dia
+0300 E514            519                         mov       a,mes
+0302 B40102          520                         cjne      a,#1,tstmes2
+0305 804D            521                         jmp       novosm31
+                     522     
+0307 B40202          523     tstmes2:            cjne      a,#2,tstmes3
+030A 806B            524                         jmp       novofev
+                     525     
+030C                 526     tstmes3:           
+030C B40302          527                         cjne      a,#3,tstmes4
+030F 8043            528                         jmp       novosm31
+                     529                         
+0311                 530     tstmes4:            
+0311 B40402          531                         cjne      a,#4,tstmes5
+0314 8055            532                         jmp       novosm30
+                     533                         
+0316                 534     tstmes5:            
+0316 B40502          535                         cjne      a,#5,tstmes6
+0319 8039            536                         jmp       novosm31
+                     537                         
+031B                 538     tstmes6:            
+031B B40602          539                         cjne      a,#6,tstmes7
+031E 804B            540                         jmp       novosm30
+                     541     
+0320                 542     tstmes7:            
+0320 B40702          543                         cjne      a,#7,tstmes8
+0323 802F            544                         jmp       novosm31
+                     545                                                
+0325                 546     tstmes8:           
+0325 B40802          547                         cjne      a,#8,tstmes9
+0328 802A            548                         jmp       novosm31
+                     549     
+032A                 550     tstmes9:            
+032A B40902          551                         cjne      a,#9,tstmes10
+032D 803C            552                         jmp       novosm30
+                     553     
+032F                 554     tstmes10:          
+032F B40A02          555                         cjne      a,#10,tstmes11
+0332 8020            556                         jmp       novosm31
+                     557     
+0334                 558     tstmes11:           
+0334 B40B02          559                         cjne      a,#11,tstmes12
+0337 8032            560                         jmp       novosm30
+                     561                         
+0339                 562     tstmes12:          
+0339 B40C02          563                         cjne      a,#12,volta_1
+033C 8002            564                         jmp       novodia31
+                     565     
+033E 01AD            566     volta_1:            jmp       conversao
+                     567     
+0340                 568     novodia31:
+0340 20B2FB          569                     jb        ch3,volta_1                   
+0343 E513            570                     mov       a,dia
+0345 B41F02          571                         cjne      a,#31,novoanonovo
+0348 8014            572                     jmp     setdata1
+034A                 573     novoanonovo:
+034A 4012            574                     jc      setdata1
+034C 751301          575                     mov       dia,#1
+034F 751401          576                         mov       mes,#1
+0352 4127            577                     jmp       setdata       
+                     578     
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE    10
+
+0354                 579     novosm31:
+0354 20B2E7          580                     jb      ch3,volta_1
+0357 E513            581                     mov       a,dia
+0359 B41F04          582                         cjne      a,#31,volta_4
+035C 4127            583                         jmp       setdata
+035E                 584     setdata1:          
+035E 4127            585                     jmp       setdata       
+                     586     
+0360                 587     volta_4:                
+0360 40FC            588                     jc        setdata1 
+0362 8000            589                     jmp       dia_1
+                     590     
+0364                 591     dia_1:          
+0364 751301          592                     mov       dia,#1
+0367 0514            593                         inc       mes
+0369 80F3            594                     jmp     setdata1
+                     595     
+036B                 596     novosm30:       
+036B 20B2D0          597                     jb      ch3,volta_1
+036E E513            598                     mov       a,dia
+0370 B41F00          599                         cjne      a,#31,volta_5
+0373                 600     volta_5:
+0373 40E9            601                     jc        setdata1   
+0375 80ED            602                     jmp     dia_1
+                     603     
+0377                 604     novofev:
+0377 20B2C4          605                     jb      ch3,volta_1
+037A E515            606                     mov     a,ano
+037C 75F004          607                         mov       b,#4
+037F 84              608                         div       ab 
+0380 E5F0            609                         mov       a,b 
+0382 6002            610                     jz      novotst29 
+0384 800B            611                     jmp       novotst28
+0386                 612     novotst29:
+0386 E513            613                     mov       a,dia
+0388 B41D02          614                         cjne      a,#29,volta_6
+038B 4127            615                             jmp       setdata
+038D                 616     volta_6:          
+038D 40CF            617                     jc        setdata1 
+038F 80D3            618                     jmp     dia_1
+                     619     
+0391                 620     novotst28:      
+0391 E513            621                     mov       a,dia
+0393 B41CF7          622                         cjne      a,#28,volta_6
+0396 8002            623                         jmp       retorno
+0398 80CA            624                     jmp     dia_1
+039A                 625     retorno:                
+039A 32              626                     reti
+                     627     
+039B                 628     saidoaperto:
+                     629               
+039B 758C06          630                         mov       TH0,#(256-250)   ; vou gerar 250Hz
+039E C0E0            631                         push      acc
+03A0 C0D0            632                         push      psw
+03A2 0516            633                         inc       cont
+03A4 E516            634                         mov       a,cont
+03A6 B4FA05          635                         cjne      a,#250,vousair
+03A9 751600          636                         mov       cont,#0
+03AC 8002            637                         jmp contagem     ; rotina de contagem
+03AE                 638     vousair:
+03AE 817A            639                         jmp       retorno_1_1
+                     640              
+                     641     
+03B0                 642     contagem:
+03B0 0510            643                     inc       seg
+03B2 E510            644                     mov       a,seg
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE    11
+
+03B4 B43C02          645                     cjne      a,#60,dif60
+03B7 8002            646                     jmp       zeraseg
+                     647     
+03B9                 648     dif60:             
+03B9 4066            649                     jc        volta_1_1
+03BB                 650     zeraseg:            
+03BB 751000          651                     mov       seg,#0
+03BE 0511            652                         inc       min
+03C0 E511            653                         mov       a,min
+03C2 B43C02          654                         cjne      a,#60,dif60_1
+03C5 8002            655                         jmp       zeramin
+03C7                 656     dif60_1:            
+03C7 4058            657                     jc        volta_1_1 
+03C9                 658     zeramin:            
+03C9 751100          659                     mov       min,#0
+03CC 0512            660                         inc       hor
+03CE E512            661                         mov       a,hor
+03D0 B41802          662                         cjne      a,#24,dif60_2
+03D3 8002            663                         jmp       zerahor
+03D5                 664     dif60_2:            
+03D5 404A            665                     jc        volta_1_1
+03D7                 666     zerahor:           
+03D7 751200          667                     mov       hor,#0
+03DA 0513            668                       inc       dia
+03DC E514            669                         mov       a,mes
+03DE B40102          670                         cjne      a,#1,tstmes2_1
+03E1 8058            671                         jmp       sm31_1
+                     672     
+03E3                 673     tstmes2_1:            
+03E3 B40202          674               cjne      a,#2,tstmes3_1
+03E6 8070            675                 jmp       fev_1
+                     676     
+03E8                 677     tstmes3_1:           
+03E8 B40302          678                 cjne      a,#3,tstmes4_1
+03EB 804E            679                 jmp       sm31_1
+                     680                         
+03ED                 681     tstmes4_1:            
+03ED B40402          682                 cjne      a,#4,tstmes5_1
+03F0 805B            683                 jmp       sm30_1
+                     684                         
+03F2                 685     tstmes5_1:            
+03F2 B40502          686                 cjne      a,#5,tstmes6_1
+03F5 8044            687                 jmp       sm31_1
+                     688                         
+03F7                 689     tstmes6_1:            
+03F7 B40602          690                 cjne      a,#6,tstmes7_1
+03FA 8051            691                 jmp       sm30_1
+                     692     
+03FC                 693     tstmes7_1:            
+03FC B40702          694                 cjne      a,#7,tstmes8_1
+03FF 803A            695                 jmp       sm31_1
+                     696                                                
+0401                 697     tstmes8_1:           
+0401 B40802          698                 cjne      a,#8,tstmes9_1
+0404 8035            699                 jmp       sm31_1
+                     700     
+0406                 701     tstmes9_1:            
+0406 B40902          702                 cjne      a,#9,tstmes10_1
+0409 8042            703                 jmp       sm30_1
+                     704     
+040B                 705     tstmes10_1:          
+040B B40A02          706                 cjne      a,#10,tstmes11_1
+040E 802B            707                 jmp       sm31_1
+                     708     
+0410                 709     tstmes11_1:           
+0410 B40B02          710                 cjne      a,#11,tstmes12_1
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE    12
+
+0413 8038            711                 jmp       sm30_1
+                     712                         
+0415                 713     tstmes12_1:          
+0415 B40C09          714                 cjne      a,#12,volta_1_1
+0418 8000            715                 jmp       dia31_1
+041A                 716     dia31_1:                        
+041A E513            717                       mov       a,dia
+041C B41F04          718                         cjne      a,#31,anonovo_1
+041F 8000            719                     jmp               volta_1_1     ;rever
+0421                 720     volta_1_1:           
+0421 8057            721                     jmp       retorno_1_1   
+                     722                         
+0423                 723     anonovo_1:                      
+0423 40F5            724                     jc                dia31_1
+0425 751301          725                     mov       dia,#1
+0428 751401          726                         mov       mes,#1
+042B 0515            727                     inc       ano
+042D E515            728                         mov       a,ano
+042F B46302          729                         cjne      a,#99,volta_2_1
+0432 8046            730                     jmp       retorno_1_1
+                     731                         
+0434                 732     volta_2_1:            
+0434 4044            733                     jc        retorno_1_1
+0436 751500          734                         mov       ano,#0
+0439 803F            735                         jmp       retorno_1_1
+                     736     
+043B                 737     sm31_1:               
+043B E513            738                         mov       a,dia
+043D B41F02          739                         cjne      a,#31,volta_4_1
+0440 8038            740                         jmp       retorno_1_1
+                     741             
+                     742     
+0442                 743     volta_4_1:            
+0442 4036            744                     jc        retorno_1_1
+0444 8000            745                     jmp       dia_1_1
+                     746     
+0446                 747     dia_1_1:             
+0446 751301          748                     mov       dia,#1
+0449 0514            749                         inc       mes
+044B 802D            750                         jmp       retorno_1_1
+                     751     
+044D                 752     sm30_1:               
+044D E513            753                     mov       a,dia
+044F B41E02          754                         cjne      a,#30,volta_5_1
+0452 8026            755                         jmp       retorno_1_1
+0454                 756     volta_5_1:            
+0454 4024            757                     jc        retorno_1_1 
+0456 80EE            758                     jmp               dia_1_1
+                     759                                             
+0458                 760     fev_1:                
+0458 E515            761                         mov       a,ano
+045A 75F004          762                         mov       b,#4
+045D 84              763                         div       ab 
+045E E5F0            764                         mov       a,b 
+0460 6002            765                     jz      tst29_1 
+0462 800B            766                         jmp       tst28_1
+                     767     
+0464                 768     tst29_1:    
+0464 E513            769                         mov       a,dia
+0466 B41D02          770                         cjne      a,#29,volta_6_1
+0469 800F            771                         jmp       retorno_1_1
+                     772     
+046B                 773     volta_6_1:        
+046B 400D            774                     jc        retorno_1_1
+046D 80D7            775                     jmp     dia_1_1
+046F                 776     tst28_1:       
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE    13
+
+046F E513            777                         mov       a,dia
+0471 B41C02          778                         cjne      a,#28,volta_7_1
+0474 8004            779                         jmp       retorno_1_1
+                     780     
+0476                 781     volta_7_1:           
+0476 4002            782                     jc        retorno_1_1 
+0478 80CC            783                     jmp               dia_1_1
+047A                 784     retorno_1_1:               
+047A D0D0            785                             pop   psw
+047C D0E0            786                             pop   acc
+047E 32              787                             reti    
+                     788     
+                     789     
+                     790               end
+                             
+                             
+                             
+                             
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE    14
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+ACC. . . . . . . .  D ADDR   00E0H   A   
+ANO. . . . . . . .  D ADDR   0015H   A   
+ANONOVO_1. . . . .  C ADDR   0423H   A   
+B. . . . . . . . .  D ADDR   00F0H   A   
+CH1. . . . . . . .  B ADDR   00B0H.0 A   
+CH2. . . . . . . .  B ADDR   00B0H.1 A   
+CH3. . . . . . . .  B ADDR   00B0H.2 A   
+CH4. . . . . . . .  B ADDR   00B0H.3 A   
+CH5. . . . . . . .  B ADDR   00B0H.4 A   
+CLRFLG_1 . . . . .  C ADDR   00C6H   A   
+CLRF_DATA. . . . .  C ADDR   0215H   A   
+CLR_SEG. . . . . .  C ADDR   026EH   A   
+COD0 . . . . . . .  D ADDR   0008H   A   
+COD1 . . . . . . .  D ADDR   0009H   A   
+COD2 . . . . . . .  D ADDR   000AH   A   
+COD3 . . . . . . .  D ADDR   000BH   A   
+COD4 . . . . . . .  D ADDR   000CH   A   
+COD5 . . . . . . .  D ADDR   000DH   A   
+COD6 . . . . . . .  D ADDR   000EH   A   
+COD7 . . . . . . .  D ADDR   000FH   A   
+CONT . . . . . . .  D ADDR   0016H   A   
+CONT2. . . . . . .  D ADDR   0017H   A   
+CONTAGEM . . . . .  C ADDR   03B0H   A   
+CONTINUA . . . . .  C ADDR   009AH   A   
+CONVERSAO. . . . .  C ADDR   00ADH   A   
+CO_DATA. . . . . .  C ADDR   02ACH   A   
+CO_HORA. . . . . .  C ADDR   0271H   A   
+C_MANUAL_0 . . . .  C ADDR   01E3H   A   
+C_MANUAL_1 . . . .  C ADDR   022BH   A   
+DECR1. . . . . . .  C ADDR   00F0H   A   
+DIA. . . . . . . .  D ADDR   0013H   A   
+DIA31_1. . . . . .  C ADDR   041AH   A   
+DIA_1. . . . . . .  C ADDR   0364H   A   
+DIA_1_1. . . . . .  C ADDR   0446H   A   
+DIF2 . . . . . . .  C ADDR   0222H   A   
+DIF3 . . . . . . .  C ADDR   0205H   A   
+DIF60. . . . . . .  C ADDR   03B9H   A   
+DIF60_1. . . . . .  C ADDR   03C7H   A   
+DIF60_123. . . . .  C ADDR   0256H   A   
+DIF60_2. . . . . .  C ADDR   03D5H   A   
+DIF60_23 . . . . .  C ADDR   023DH   A   
+DISPLAYZ0. . . . .  C ADDR   003AH   A   
+DISPLAYZ1. . . . .  C ADDR   0043H   A   
+DISPLAYZ2. . . . .  C ADDR   004CH   A   
+DISPLAYZ3. . . . .  C ADDR   0055H   A   
+DISPLAYZ4. . . . .  C ADDR   005EH   A   
+DISPLAYZ5. . . . .  C ADDR   0067H   A   
+DISPLAYZ6. . . . .  C ADDR   0070H   A   
+DISPLAYZ7. . . . .  C ADDR   0079H   A   
+DOMINGO. . . . . .  C ADDR   01ACH   A   
+DSP0 . . . . . . .  B ADDR   00A0H.4 A   
+DSP1 . . . . . . .  B ADDR   00A0H.0 A   
+DSP2 . . . . . . .  B ADDR   00A0H.1 A   
+DSP3 . . . . . . .  B ADDR   00A0H.2 A   
+DSP4 . . . . . . .  B ADDR   00A0H.3 A   
+DSP5 . . . . . . .  B ADDR   00A0H.5 A   
+DSP6 . . . . . . .  B ADDR   00A0H.6 A   
+DSP7 . . . . . . .  B ADDR   00A0H.7 A   
+ENCONTRO1. . . . .  C ADDR   0090H   A   
+FEV_1. . . . . . .  C ADDR   0458H   A   
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE    15
+
+FLGCONT. . . . . .  B ADDR   0020H.4 A   
+FLG_1. . . . . . .  B ADDR   0020H.0 A   
+FLG_S. . . . . . .  B ADDR   0020H.3 A   
+FLG_SEMANA_1 . . .  C ADDR   00CDH   A   
+F_DATA . . . . . .  B ADDR   0020H.2 A   
+F_HORA . . . . . .  B ADDR   0020H.1 A   
+HOR. . . . . . . .  D ADDR   0012H   A   
+HORA0. . . . . . .  C ADDR   026AH   A   
+HORA1. . . . . . .  C ADDR   0249H   A   
+HORA_1 . . . . . .  C ADDR   0230H   A   
+HORA_11. . . . . .  C ADDR   0266H   A   
+IE . . . . . . . .  D ADDR   00A8H   A   
+INCDIA . . . . . .  C ADDR   02FEH   A   
+INC_ANO. . . . . .  C ADDR   0219H   A   
+INC_DIA. . . . . .  C ADDR   01F1H   A   
+INC_HORA . . . . .  C ADDR   0234H   A   
+INC_MES. . . . . .  C ADDR   01FCH   A   
+INC_MIN. . . . . .  C ADDR   024DH   A   
+INICIO . . . . . .  C ADDR   0000H   A   
+INICIO2. . . . . .  C ADDR   0095H   A   
+MENOR. . . . . . .  C ADDR   00F3H   A   
+MES. . . . . . . .  D ADDR   0014H   A   
+MIN. . . . . . . .  D ADDR   0011H   A   
+MOSTRAD_SEM. . . .  C ADDR   00D2H   A   
+NOVOANONOVO. . . .  C ADDR   034AH   A   
+NOVODIA31. . . . .  C ADDR   0340H   A   
+NOVOFEV. . . . . .  C ADDR   0377H   A   
+NOVOSM30 . . . . .  C ADDR   036BH   A   
+NOVOSM31 . . . . .  C ADDR   0354H   A   
+NOVOTST28. . . . .  C ADDR   0391H   A   
+NOVOTST29. . . . .  C ADDR   0386H   A   
+P0 . . . . . . . .  D ADDR   0080H   A   
+P2 . . . . . . . .  D ADDR   00A0H   A   
+P3 . . . . . . . .  D ADDR   00B0H   A   
+PASSO3 . . . . . .  C ADDR   00F7H   A   
+PILHA. . . . . . .  I ADDR   0080H   A   
+PSW. . . . . . . .  D ADDR   00D0H   A   
+QUARTA . . . . . .  C ADDR   0140H   A   
+QUINTA . . . . . .  C ADDR   015BH   A   
+RETORNO. . . . . .  C ADDR   039AH   A   
+RETORNO_1_1. . . .  C ADDR   047AH   A   
+RETURN . . . . . .  C ADDR   008FH   A   
+SABADO . . . . . .  C ADDR   0191H   A   
+SAIDOAPERTO. . . .  C ADDR   039BH   A   
+SEG. . . . . . . .  D ADDR   0010H   A   
+SEGUNDA. . . . . .  C ADDR   010AH   A   
+SEGUNDAX . . . . .  C ADDR   01C7H   A   
+SETDATA. . . . . .  C ADDR   0227H   A   
+SETDATA1 . . . . .  C ADDR   035EH   A   
+SETFHORA . . . . .  C ADDR   025DH   A   
+SETFLG_1 . . . . .  C ADDR   01CEH   A   
+SETF_DATA. . . . .  C ADDR   01EDH   A   
+SETF_DATA1 . . . .  C ADDR   01F8H   A   
+SETF_DATA2 . . . .  C ADDR   0211H   A   
+SEXTA. . . . . . .  C ADDR   0176H   A   
+SM30_1 . . . . . .  C ADDR   044DH   A   
+SM31_1 . . . . . .  C ADDR   043BH   A   
+SP . . . . . . . .  D ADDR   0081H   A   
+TABELA . . . . . .  C ADDR   02E7H   A   
+TABELA_1 . . . . .  C ADDR   02F1H   A   
+TERCA. . . . . . .  C ADDR   0125H   A   
+TESTACOMDELAY. . .  C ADDR   01E8H   A   
+TH0. . . . . . . .  D ADDR   008CH   A   
+TH1. . . . . . . .  D ADDR   008DH   A   
+TMOD . . . . . . .  D ADDR   0089H   A   
+TR0. . . . . . . .  B ADDR   0088H.4 A   
+A51 MACRO ASSEMBLER  RELÛGIO_DIGITAL                                                      10/04/2016 16:45:38 PAGE    16
+
+TR1. . . . . . . .  B ADDR   0088H.6 A   
+TST28_1. . . . . .  C ADDR   046FH   A   
+TST29_1. . . . . .  C ADDR   0464H   A   
+TSTCH2 . . . . . .  C ADDR   01C9H   A   
+TSTCH4 . . . . . .  C ADDR   0244H   A   
+TSTCH4_1 . . . . .  C ADDR   01F3H   A   
+TSTCH5 . . . . . .  C ADDR   0261H   A   
+TSTCH5_1 . . . . .  C ADDR   020CH   A   
+TSTFLG_1 . . . . .  C ADDR   01D2H   A   
+TSTF_DATA. . . . .  C ADDR   01D7H   A   
+TSTF_HORA. . . . .  C ADDR   01DCH   A   
+TSTMES . . . . . .  C ADDR   00EBH   A   
+TSTMES10 . . . . .  C ADDR   032FH   A   
+TSTMES10_1 . . . .  C ADDR   040BH   A   
+TSTMES11 . . . . .  C ADDR   0334H   A   
+TSTMES11_1 . . . .  C ADDR   0410H   A   
+TSTMES12 . . . . .  C ADDR   0339H   A   
+TSTMES12_1 . . . .  C ADDR   0415H   A   
+TSTMES2. . . . . .  C ADDR   0307H   A   
+TSTMES2_1. . . . .  C ADDR   03E3H   A   
+TSTMES3. . . . . .  C ADDR   030CH   A   
+TSTMES3_1. . . . .  C ADDR   03E8H   A   
+TSTMES4. . . . . .  C ADDR   0311H   A   
+TSTMES4_1. . . . .  C ADDR   03EDH   A   
+TSTMES5. . . . . .  C ADDR   0316H   A   
+TSTMES5_1. . . . .  C ADDR   03F2H   A   
+TSTMES6. . . . . .  C ADDR   031BH   A   
+TSTMES6_1. . . . .  C ADDR   03F7H   A   
+TSTMES7. . . . . .  C ADDR   0320H   A   
+TSTMES7_1. . . . .  C ADDR   03FCH   A   
+TSTMES8. . . . . .  C ADDR   0325H   A   
+TSTMES8_1. . . . .  C ADDR   0401H   A   
+TSTMES9. . . . . .  C ADDR   032AH   A   
+TSTMES9_1. . . . .  C ADDR   0406H   A   
+VARREDURA. . . . .  C ADDR   001EH   A   
+VOLTA. . . . . . .  C ADDR   00C1H   A   
+VOLTA_1. . . . . .  C ADDR   033EH   A   
+VOLTA_1_1. . . . .  C ADDR   0421H   A   
+VOLTA_2_1. . . . .  C ADDR   0434H   A   
+VOLTA_4. . . . . .  C ADDR   0360H   A   
+VOLTA_4_1. . . . .  C ADDR   0442H   A   
+VOLTA_5. . . . . .  C ADDR   0373H   A   
+VOLTA_5_1. . . . .  C ADDR   0454H   A   
+VOLTA_6. . . . . .  C ADDR   038DH   A   
+VOLTA_6_1. . . . .  C ADDR   046BH   A   
+VOLTA_7_1. . . . .  C ADDR   0476H   A   
+VOUSAIR. . . . . .  C ADDR   03AEH   A   
+ZERAANO. . . . . .  C ADDR   0224H   A   
+ZERAHOR. . . . . .  C ADDR   03D7H   A   
+ZERAHORA . . . . .  C ADDR   023FH   A   
+ZERAMES. . . . . .  C ADDR   0207H   A   
+ZERAMIN. . . . . .  C ADDR   03C9H   A   
+ZERAMIN1 . . . . .  C ADDR   0258H   A   
+ZERASEG. . . . . .  C ADDR   03BBH   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

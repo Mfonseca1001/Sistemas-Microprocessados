@@ -1,0 +1,15 @@
+<html>
+<body>
+<pre>
+<h1>µVision3 Build Log</h1>
+<h2>Project:</h2>
+Y:\T9841_2016\GRUPO2\Jhonathas_Marcele\IIª UNIDADE\Aula_4_relógio digital - o certo\relógio digital.uv2
+Project File Date:  09/20/2016
+
+<h2>Output:</h2>
+Build target 'Target 1'
+assembling relógio digital.asm...
+linking...
+Program Size: data=44.5 xdata=0 code=1131
+creating hex file from "relógio digital"...
+"relógio digital" - 0 Error(s), 0 Warning(s).

@@ -1,0 +1,16 @@
+<html>
+<body>
+<pre>
+<h1>µVision3 Build Log</h1>
+<h2>Project:</h2>
+Y:\T9841_2016\GRUPO2\Jhonathas_Marcele\Iª UNIDADE\Aula_08_relogio_digital_DDS\relogio digital c_ ajuste_Uv2.uv2
+Project File Date:  09/20/2016
+
+<h2>Output:</h2>
+Build target 'Target 1'
+assembling relogio digital c_ ajuste.asm...
+linking...
+Program Size: data=24.4 xdata=0 code=1044
+creating hex file from "relogio digital c_ ajuste"...
+"relogio digital c_ ajuste" - 0 Error(s), 0 Warning(s).
+"C:\Users\T9841_2013\Desktop\vm_074.exe" Y:\T9841_2016\GRUPO2\Jhonathas_Marcele\Iª UNIDADE\Aula_08_relogio_digital_DDS\relogio digital c_ ajuste.HEX
